@@ -19,4 +19,9 @@
         </testsuite>
     </testsuites>
 
+    <php>
+        <env name="TEST_BEANSTALKD_HOST" value="127.0.0.1" />
+        <env name="TEST_BEANSTALKD_PORT" value="11300" />
+    </php>
+
 </phpunit>
