@@ -22,7 +22,7 @@ use Codeages\Beanstalk\Exception\ServerException;
  *
  * @link https://github.com/kr/beanstalkd/blob/master/doc/protocol.txt
  */
-class BeanstalkClient {
+class Client {
 
     /**
      * Minimum priority value which can be assigned to a job. The minimum
@@ -89,7 +89,8 @@ class BeanstalkClient {
             'persistent' => true,
             'host' => '127.0.0.1',
             'port' => 11300,
-            'timeout' => 1,
+            'timeout' => 2,
+            'socket_timeout' => 2,
             'logger' => null
         ];
         $this->_config = $config + $defaults;
@@ -136,8 +137,7 @@ class BeanstalkClient {
             throw new ConnectionException('Connected failed.');
         }
 
-        // -1, what?
-        stream_set_timeout($this->_connection, -1);
+        stream_set_timeout($this->_connection, $this->_config['socket_timeout']);
 
         return $this->connected;
     }
@@ -177,18 +177,6 @@ class BeanstalkClient {
 
         $data .= "\r\n";
 
-        try {
-            $fwrited = $this->_writeSocket($data);
-        } catch (SocketException $e) {
-            $this->_reconnect();
-            $fwrited = $this->_writeSocket($data);
-        }
-
-        return $fwrited;
-    }
-
-    private function _writeSocket($data)
-    {
         $length = strlen($data);
         $fwrited = fwrite($this->_connection, $data, $length);
 
@@ -201,7 +189,7 @@ class BeanstalkClient {
         return $fwrited;
     }
 
-    private function _reconnect()
+    public function reconnect()
     {
         @fclose($this->_connection);
         $this->_connection = null;
@@ -232,18 +220,24 @@ class BeanstalkClient {
         }
         if ($length) {
             if (feof($this->_connection)) {
-                return false;
+                throw new SocketException('Connection is closed by server.');
             }
             $data = stream_get_contents($this->_connection, $length + 2);
-            $meta = stream_get_meta_data($this->_connection);
-
-            if ($meta['timed_out']) {
-                $message = 'Connection timed out while reading data from socket.';
-                throw new RuntimeException($message);
+            if ($data === false) {
+                throw new SocketException('Read content from connection error.');
             }
+
+            $meta = stream_get_meta_data($this->_connection);
+            if ($meta['timed_out']) {
+                throw new SocketException('Connection timed out while reading data from socket.');
+            }
+
             $packet = rtrim($data, "\r\n");
         } else {
             $packet = stream_get_line($this->_connection, 16384, "\r\n");
+            if ($packet === false) {
+                throw new SocketException('Read content from connection error.');
+            }
         }
         return $packet;
     }
@@ -656,6 +650,11 @@ class BeanstalkClient {
     public function listTubesWatched() {
         $this->_write('list-tubes-watched');
         return $this->_statsRead();
+    }
+
+    public function getConfig()
+    {
+        return $this->_config;
     }
 
     /**
