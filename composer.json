@@ -1,8 +1,8 @@
 {
-    "name": "edusoho/beanstalk-client",
+    "name": "codeages/beanstalk-client",
     "description": "含断线重连机制的Beanstalk PHP客户端。",
     "keywords": ["beanstalk"],
-    "homepage": "https://github.com/edusoho/beanstalk-client",
+    "homepage": "https://github.com/codeages/beanstalk-client",
     "license": "MIT",
     "autoload": {
         "psr-4": { 
@@ -12,12 +12,12 @@
     },
     "authors": [
         {
-            "name": "EduSoho Team",
-            "email": "team@edusoho.com"
+            "name": "Codeages Team",
+            "email": "team@codeages.com"
         }
     ],
     "require": {
-        "php": ">=5.3.3",
+        "php": ">=5.4.1",
         "davidpersson/beanstalk" : "^2.0.0"
     }
 }
