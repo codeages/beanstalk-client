@@ -26,6 +26,7 @@ class ClientProxy
                 $this->logger->info($message);
             }
             $this->client->reconnect();
+
             return call_user_func_array([$this->client, $method], $arguments);
         }
     }

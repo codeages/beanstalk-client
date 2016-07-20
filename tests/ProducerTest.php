@@ -10,14 +10,15 @@
 
 namespace Codeages\Beanstalk\Tests;
 
-use Codeages\Beanstalk\BeanstalkClient as Client;
+use Codeages\Beanstalk\Client;
 use Codeages\Beanstalk\Exception\ServerException;
 
-class ProducerTest extends \PHPUnit_Framework_TestCase {
-
+class ProducerTest extends \PHPUnit_Framework_TestCase
+{
     public $subject;
 
-    protected function setUp() {
+    protected function setUp()
+    {
         $host = getenv('TEST_BEANSTALKD_HOST');
         $port = getenv('TEST_BEANSTALKD_PORT');
 
@@ -28,7 +29,7 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->subject = new Client(compact('host', 'port'));
 
         if (!$this->subject->connect()) {
-            $message  = "Need a running beanstalkd server at {$host}:{$port}.";
+            $message = "Need a running beanstalkd server at {$host}:{$port}.";
             $this->markTestSkipped($message);
         }
 
@@ -45,7 +46,8 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->subject->useTube('default');
     }
 
-    public function testPut() {
+    public function testPut()
+    {
         $this->subject->useTube('test');
 
         $this->subject->put(0, 0, 100, 'test');
@@ -55,7 +57,8 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(2, $result['current-jobs-urgent']);
     }
 
-    public function testUseTube() {
+    public function testUseTube()
+    {
         $result = $this->subject->useTube('test0');
         $this->assertEquals('test0', $result);
 
@@ -63,14 +66,16 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals('test1', $result);
     }
 
-    public function testReserveWithoutTimeout() {
+    public function testReserveWithoutTimeout()
+    {
         $this->subject->put(0, 0, 100, 'test0');
 
         $result = $this->subject->reserve();
         $this->assertEquals('test0', $result['body']);
     }
 
-    public function testReserveWithTimeout() {
+    public function testReserveWithTimeout()
+    {
         $start = microtime(true);
 
         $this->subject->reserve(1);
@@ -79,7 +84,8 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(1, (integer) $result);
     }
 
-    public function testExceedFreadDefaultChunkSize() {
+    public function testExceedFreadDefaultChunkSize()
+    {
         $this->subject->put(0, 0, 100, str_repeat('0', 8192 + 4));
         $result = $this->subject->reserve(1);
 
@@ -93,7 +99,8 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->assertEquals(8192 * 4, strlen($result['body']));
     }
 
-    public function testExceedMaxJobSize() {
+    public function testExceedMaxJobSize()
+    {
         $this->subject->put(0, 0, 100, str_repeat('0', 65536 - 1));
         $result = $this->subject->reserve(5);
 
@@ -102,7 +109,7 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
 
         try {
             $this->subject->put(0, 0, 100, str_repeat('0', 65536));
-        } catch(ServerException $e) {
+        } catch (ServerException $e) {
             $this->assertStringEndsWith('JOB_TOO_BIG', $e->getMessage());
         }
 
@@ -110,15 +117,14 @@ class ProducerTest extends \PHPUnit_Framework_TestCase {
         $this->assertFalse($result);
     }
 
-    public function testHighFrequencyPut() {
+    public function testHighFrequencyPut()
+    {
         $this->subject->useTube('test');
 
-        for ($i = 0; $i < 10000; $i++) {
-            $this->subject->put(0, 0, 100, 'test' . $i);
+        for ($i = 0; $i < 10000; ++$i) {
+            $this->subject->put(0, 0, 100, 'test'.$i);
         }
         $result = $this->subject->statsTube('test');
         $this->assertEquals(10000, $result['current-jobs-urgent']);
     }
 }
-
-?>

@@ -10,13 +10,14 @@
 
 namespace Codeages\Beanstalk\Tests;
 
-use Codeages\Beanstalk\BeanstalkClient as Client;
+use Codeages\Beanstalk\Client;
 
-class ConnectTest extends \PHPUnit_Framework_TestCase {
-
+class ConnectTest extends \PHPUnit_Framework_TestCase
+{
     public $subject;
 
-    protected function setUp() {
+    protected function setUp()
+    {
         $host = getenv('TEST_BEANSTALKD_HOST');
         $port = getenv('TEST_BEANSTALKD_PORT');
 
@@ -27,12 +28,13 @@ class ConnectTest extends \PHPUnit_Framework_TestCase {
         $this->subject = new Client(compact('host', 'port'));
 
         if (!$this->subject->connect()) {
-            $message  = "Need a running beanstalkd server at {$host}:{$port}.";
+            $message = "Need a running beanstalkd server at {$host}:{$port}.";
             $this->markTestSkipped($message);
         }
     }
 
-    public function testConnection() {
+    public function testConnection()
+    {
         $this->subject->disconnect();
 
         $result = $this->subject->connect();
@@ -48,4 +50,3 @@ class ConnectTest extends \PHPUnit_Framework_TestCase {
         $this->assertFalse($result);
     }
 }
-

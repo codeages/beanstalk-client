@@ -13,11 +13,12 @@ namespace Codeages\Beanstalk\Tests;
 use Codeages\Beanstalk\Client;
 use Codeages\Beanstalk\ClientProxy;
 
-class ReconnectTest extends \PHPUnit_Framework_TestCase {
-
+class ClientProxyTest extends \PHPUnit_Framework_TestCase
+{
     public $subject;
 
-    protected function setUp() {
+    protected function setUp()
+    {
         $host = getenv('TEST_BEANSTALKD_HOST');
         $port = getenv('TEST_BEANSTALKD_PORT');
 
@@ -28,13 +29,13 @@ class ReconnectTest extends \PHPUnit_Framework_TestCase {
         $this->subject = new Client(compact('host', 'port'));
 
         if (!$this->subject->connect()) {
-            $message  = "Need a running beanstalkd server at {$host}:{$port}.";
+            $message = "Need a running beanstalkd server at {$host}:{$port}.";
             $this->markTestSkipped($message);
         }
     }
 
-    public function testConnection() {
-
+    public function testConnection()
+    {
         $client = new ClientProxy($this->subject);
 
         $job = $client->put(0, 0, 10, 'hello!');
@@ -43,4 +44,3 @@ class ReconnectTest extends \PHPUnit_Framework_TestCase {
         $this->assertGreaterThan(0, $job);
     }
 }
-

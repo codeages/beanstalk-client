@@ -1,4 +1,5 @@
 <?php
+
 namespace Codeages\Beanstalk;
 
 class Helper
@@ -21,21 +22,20 @@ class Helper
         );
 
         while ($job = $this->client->peekReady()) {
-            $deletes['ready'] ++;
+            ++$deletes['ready'];
             $this->client->delete($job['id']);
         }
 
         while ($job = $this->client->peekDelayed()) {
-            $deletes['delayed'] ++;
+            ++$deletes['delayed'];
             $this->client->delete($job['id']);
         }
 
         while ($job = $this->client->peekBuried()) {
-            $deletes['buried'] ++;
+            ++$deletes['buried'];
             $this->client->delete($job['id']);
         }
 
         return $deletes;
     }
-
 }
