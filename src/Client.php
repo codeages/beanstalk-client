@@ -1,5 +1,5 @@
 <?php
-namespace EduSoho\Beanstalk;
+namespace Codeages\Beanstalk;
 
 use Beanstalk\Client as BaseClient;
 
@@ -148,7 +148,7 @@ class Client extends BaseClient
         if ($this->_config['logger']) {
             $this->_config['logger']->warning('reconnect');
         }
-        // fclose($this->_connection);
+        fclose($this->_connection);
         $this->_connection = null;
         $this->connected = false;
         return $this->connect();

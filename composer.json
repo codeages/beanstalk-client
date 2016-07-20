@@ -6,8 +6,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": { 
-            "EduSoho\\Beanstalk\\": "src/",
-            "EduSoho\\Beanstalk\\Tests\\": "tests/"
+            "Codeages\\Beanstalk\\": "src/",
+            "Codeages\\Beanstalk\\Tests\\": "tests/"
         }
     },
     "authors": [

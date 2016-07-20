@@ -1,5 +1,5 @@
 <?php
-namespace EduSoho\Beanstalk;
+namespace Codeages\Beanstalk;
 
 class Helper
 {
