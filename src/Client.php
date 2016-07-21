@@ -79,6 +79,7 @@ class Client
      *                      to `11300`.
      *                      - `'timeout'`     Timeout in seconds when establishing the
      *                      connection, defaults to `1`.
+     *                      - `'socket_timeout'` Socket timeout, defaults to `20` seconds.
      *                      - `'logger'`      An instance of a PSR-3 compatible logger.
      *
      * @link https://github.com/php-fig/fig-standards/blob/master/accepted/PSR-3-logger-interface.md
@@ -90,7 +91,7 @@ class Client
             'host' => '127.0.0.1',
             'port' => 11300,
             'timeout' => 2,
-            'socket_timeout' => 2,
+            'socket_timeout' => 20,
             'logger' => null,
         ];
         $this->_config = $config + $defaults;

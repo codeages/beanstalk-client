@@ -2,32 +2,63 @@
 
 namespace Codeages\Beanstalk;
 
-use Codeages\Beanstalk\Exception\SocketException;
 use Psr\Log\LoggerInterface;
+use Codeages\Beanstalk\Exception\SocketException;
+use Codeages\Beanstalk\Exception\ConnectionException;
 
 class ClientProxy
 {
     protected $client;
     protected $logger;
+    protected $maxReconnectTimes;
+    protected $reconnectSleep;
 
-    public function __construct(Client $client, LoggerInterface $logger = null)
+    /**
+     * ClientProxy构造
+     * 
+     * @param Client               $client            Client对象
+     * @param LoggerInterface|null $logger            日志对象
+     * @param integer              $maxReconnectTimes 最大重试连接的次数
+     * @param integer              $reconnectSleep    重试间隔，单位秒
+     */
+    public function __construct(Client $client, LoggerInterface $logger = null, $maxReconnectTimes = 8, $reconnectSleep = 2)
     {
         $this->client = $client;
         $this->logger = $logger;
+        $this->maxReconnectTimes = $maxReconnectTimes;
+        $this->reconnectSleep = $reconnectSleep;
     }
 
     public function __call($method, $arguments)
     {
-        try {
-            return call_user_func_array([$this->client, $method], $arguments);
-        } catch (SocketException $e) {
-            if ($this->logger) {
-                $message = sprintf('When call %s(%s), beanstalk reconnect(%s).', $method, substr(json_encode($arguments), 0, 100), json_encode($this->client->getConfig()));
-                $this->logger->info($message);
-            }
-            $this->client->reconnect();
+        $ok = true;
+        $reconnectTimes = 0;
 
-            return call_user_func_array([$this->client, $method], $arguments);
-        }
+        do {
+
+            try {
+                if ($ok === false) {
+                    $reconnectTimes ++;
+                    $this->client->reconnect();
+                    $ok = true;
+                }
+
+                try {
+                    return call_user_func_array([$this->client, $method], $arguments);
+                } catch (SocketException $e) {
+                    $ok = false;
+                    $message = sprintf('Beanstalk reconnect happened(%s), when call %s(%s).', json_encode($this->client->getConfig()), $method, substr(json_encode($arguments), 0, 100));
+                    $this->logger->notice($message);
+                }
+
+            } catch (ConnectionException $e) {
+                $ok = false;
+                $messge = sprintf('Beanstalk reconnect error(retry %d times), sleep 2 seconds, try again.', $reconnectTimes);
+                $this->logger->notice($messge);
+                sleep($this->reconnectSleep);
+            }
+
+        } while($ok === false && $reconnectTimes < $this->maxReconnectTimes);
+
     }
 }
