@@ -40,6 +40,10 @@ $client->put(.......);
 
 代理类，比较适合在后台服务进程类的程序中使用。
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md).
+
 ## License
 
 MIT.

@@ -14,6 +14,7 @@ use RuntimeException;
 use Codeages\Beanstalk\Exception\SocketException;
 use Codeages\Beanstalk\Exception\ConnectionException;
 use Codeages\Beanstalk\Exception\ServerException;
+use Codeages\Beanstalk\Exception\DeadlineSoonException;
 
 /**
  * An interface to the beanstalk queue service. Implements the beanstalk
@@ -357,11 +358,12 @@ class Client
                     'id' => (integer) strtok(' '),
                     'body' => $this->_read((integer) strtok(' ')),
                 ];
-            case 'DEADLINE_SOON':
             case 'TIMED_OUT':
                 return false;
+            case 'DEADLINE_SOON':
+                throw new DeadlineSoonException('Reserve failed: '.$status);
             default:
-                throw new ServerException('Reserve error: '.$status);
+                throw new ServerException('Reserve failed: '.$status);
         }
     }
 
