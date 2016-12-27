@@ -32,6 +32,7 @@ class ClientProxy
     public function __call($method, $arguments)
     {
         $ok = true;
+        $exception = null;
         $reconnectTimes = 0;
 
         do {
@@ -47,18 +48,24 @@ class ClientProxy
                     return call_user_func_array([$this->client, $method], $arguments);
                 } catch (SocketException $e) {
                     $ok = false;
+                    $exception = $e;
                     $message = sprintf('Beanstalk reconnect happened(%s), when call %s(%s).', json_encode($this->client->getConfig()), $method, substr(json_encode($arguments), 0, 100));
                     $this->logger->notice($message);
                 }
 
             } catch (ConnectionException $e) {
                 $ok = false;
+                $exception = $e;
                 $messge = sprintf('Beanstalk reconnect error(retry %d times), sleep 2 seconds, try again.', $reconnectTimes);
                 $this->logger->notice($messge);
                 sleep($this->reconnectSleep);
             }
 
         } while($ok === false && $reconnectTimes < $this->maxReconnectTimes);
+
+        if ($exception) {
+            throw $exception;
+        }
 
     }
 }
